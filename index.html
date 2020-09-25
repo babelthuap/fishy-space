@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fishy Space</title>
+<style>
+  html,body {
+    background: linear-gradient(#6468e6, #061192);
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+  }
+  #ship {
+    height:200px;
+    width:200px;
+    background-image: url("./clown-fish.png");
+    background-position: center center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+  }
+  .star {
+    background-color: #ffffff8f;
+    border-radius: 100%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+</style>
+</head>
+<body>
+<div id="ship"></div>
+<script>
+  'use strict';
+
+  const ship = document.getElementById('ship');
+  let shipX = parseInt(ship.style.left) || 0;
+  let shipY = parseInt(ship.style.top) || 0;
+  const shipSpeed = 0.5;
+  
+  const stars = new Set();
+  const starSpeed = 0.01;
+
+  let mouseX = 0;
+  let mouseY = 0;
+  document.body.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+  
+  let playing = true;
+  document.body.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+      playing = !playing;
+    }
+  });
+  
+  let previousTimestamp = null;
+  function tick(timestamp) {
+    if (!playing) {
+      previousTimestamp = null;
+      requestAnimationFrame(tick);
+      return;
+    }
+    if (previousTimestamp === null) {
+      previousTimestamp = timestamp;
+      requestAnimationFrame(tick);
+      return;
+    }
+    const elapsed = timestamp - previousTimestamp;
+    previousTimestamp = timestamp;
+    moveShip(elapsed);
+    spawnStar();
+    moveStars(elapsed);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  
+  function moveShip(elapsed) {
+    let dx = mouseX - shipX;
+    let dy = mouseY - shipY;
+    const norm = Math.max(elapsed, Math.sqrt(dx * dx + dy * dy));
+    dx = dx / norm * elapsed * shipSpeed;
+    dy = dy / norm * elapsed * shipSpeed;
+    shipX += dx;
+    shipY += dy;
+    ship.style.left = `${shipX}px`;
+    ship.style.top = `${shipY}px`;
+  }
+  
+  function spawnStar() {
+    if (rand(0, 1) === 0) {
+      return;
+    }
+    const size = 32 - Math.floor(Math.sqrt(rand(0, 1023)));
+    const x = window.innerWidth;
+    const y = rand(0, window.innerHeight);
+    const el = document.createElement('div');
+    el.classList.add('star');
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.height = el.style.width = `${size}px`;
+    el.style.zIndex = size;
+    document.body.append(el);
+    stars.add({el, x, size});
+  }
+  
+  function rand(a, b) {
+    return a + Math.floor(Math.random() * (b - a + 1));
+  }
+  
+  function moveStars(elapsed) {
+    stars.forEach(star => {
+      star.x -= elapsed * star.size * starSpeed;
+      if (star.x < 0) {
+        star.el.remove();
+        stars.delete(star);
+      } else {
+        star.el.style.left = `${star.x}px`;
+      }
+    });
+  }
+</script>
+</body>
+</html>
