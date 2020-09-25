@@ -6,11 +6,13 @@
 <title>Fishy Space</title>
 <style>
   html,body {
-    background: linear-gradient(#6468e6, #061192);
     height: 100%;
     margin: 0;
     overflow: hidden;
     padding: 0;
+  }
+  body {
+    background: linear-gradient(#6468e6, #061192);
   }
   #ship {
     height:200px;
@@ -75,28 +77,28 @@
     moveShip(elapsed);
     spawnStar();
     moveStars(elapsed);
+    console.log(stars.size);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
   
   function moveShip(elapsed) {
-    let dx = mouseX - shipX;
-    let dy = mouseY - shipY;
+    const dx = mouseX - shipX;
+    const dy = mouseY - shipY;
     const norm = Math.max(elapsed, Math.sqrt(dx * dx + dy * dy));
-    dx = dx / norm * elapsed * shipSpeed;
-    dy = dy / norm * elapsed * shipSpeed;
-    shipX += dx;
-    shipY += dy;
+    const factor = elapsed * shipSpeed / norm;
+    shipX += dx * factor;
+    shipY += dy * factor;
     ship.style.left = `${shipX}px`;
     ship.style.top = `${shipY}px`;
   }
   
   function spawnStar() {
-    if (rand(0, 1) === 0) {
+    if (rand(0, 2) !== 0) {
       return;
     }
     const size = 32 - Math.floor(Math.sqrt(rand(0, 1023)));
-    const x = window.innerWidth;
+    const x = window.innerWidth + (size >> 1);
     const y = rand(0, window.innerHeight);
     const el = document.createElement('div');
     el.classList.add('star');
@@ -115,7 +117,7 @@
   function moveStars(elapsed) {
     stars.forEach(star => {
       star.x -= elapsed * star.size * starSpeed;
-      if (star.x < 0) {
+      if (star.x + (star.size >> 1) < 0) {
         star.el.remove();
         stars.delete(star);
       } else {
